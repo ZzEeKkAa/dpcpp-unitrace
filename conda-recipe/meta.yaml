@@ -1,0 +1,68 @@
+{% set version = "2024.0.0" %}
+{% set intel_build_number = "49819" %}   # [linux]
+{% set intel_build_number = "49840" %}   # [win]
+{% set target_platform = "linux-64" %}  # [linux64]
+{% set target_platform = "win-64" %}    # [win64]
+
+# use this if our build script changes and we need to increment beyond intel's version
+{% set dst_build_number = '0' %}
+{% set build_number = intel_build_number|int + dst_build_number|int %}
+
+package:
+  name: dpcpp-unitrace
+  version: {{ version }}
+
+source:
+  git_rev: master
+  git_url: https://github.com/intel/pti-gpu.git 
+
+build:
+  number: {{ build_number }}
+
+requirements:
+  build:
+    - cmake ==3.28
+    - ninja >=1.11.1
+    - git
+    - openssh
+    - {{ compiler('cxx') }}
+    - {{ compiler('dpcpp') }} =={{ version }}=intel_{{ intel_build_number }}
+    # Minimal supported version of sysroot (which is version of glibc) to
+    # have compatibility with wider range of linux distributions.
+    # 2.28 is the minimal supported version by dpcpp
+    - sysroot_linux-64 =2.28  # [linux]
+  host:
+    - python
+    - level-zero-devel >=1.16
+    - {{ pin_compatible('dpcpp-cpp-rt', min_pin='x.x', max_pin='x') }}
+    - {{ pin_compatible('intel-cmplr-lib-rt', min_pin='x.x', max_pin='x') }}
+  run:
+    - {{ pin_compatible('dpcpp-cpp-rt', min_pin='x.x', max_pin='x') }}
+    - {{ pin_compatible('intel-cmplr-lib-rt', min_pin='x.x', max_pin='x') }}
+    - {{ pin_compatible('level-zero', min_pin='x.x', max_pin='x') }} # [linux]
+
+# test:
+#   script: run_test.py
+#   imports:
+#     - dpcpp_llvm_spirv
+#   requires:
+#     - spirv-tools
+#     - llvm-tools
+
+about:
+  home: https://github.com/IntelPython/dpcpp-unitrace.git
+  license: LicenseRef-Proprietary-Intel-End-User-License-Agreement-for-Developer-Tools
+  license_family: Proprietary
+  license_file:
+    - ../license.txt
+    - ../tpp.txt
+  summary: A Python package vendoring llvm-spirv executable from Intel(R) oneAPI DPC++ compiler.
+  description: |
+    <strong>LEGAL NOTICE: Use of this software package is subject to the
+    software license agreement (as set forth above, in the license section of
+    the installed Conda package and/or the README file) and all notices,
+    disclaimers or license terms for third party or open source software
+    included in or with the software.</strong>
+    <br/><br/>
+    EULA: <a href="https://www.intel.com/content/dam/develop/external/us/en/documents/pdf/intel-developer-tools-eula-09-03-19.pdf" target="_blank">LicenseRef-Proprietary-Intel-End-User-License-Agreement-for-Developer-Tools</a>
+    <br/><br/>
